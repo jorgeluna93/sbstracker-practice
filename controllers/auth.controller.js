@@ -18,7 +18,7 @@ export const signUp = async(req,res,next)=>{
         const existingUser = await User.findOne({email});
 
         if(existingUser){
-            const error =  new Error('This User... man... it already exists!');
+            const error =  new Error('This User already exists!');
             error.statusCode = 409;
             throw error;
         }
