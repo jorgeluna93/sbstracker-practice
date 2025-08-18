@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
-
+/*
+Model of the SUBSCRIPTION using mongoose ORM
+*/
 const subscriptionSchema = new mongoose.Schema({
     name:{
         type:String,
@@ -60,8 +62,9 @@ const subscriptionSchema = new mongoose.Schema({
 
 }, {timestamps:true});
 
-//Calc renewal date
+//Calc renewal date as soon as we create a subscription object... 
 subscriptionSchema.pre('save',function(next){
+
     if(!this.renewalDate){
         const renawalPeriods = {
             daily:1,

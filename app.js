@@ -7,6 +7,7 @@ import connectToDB from './database/mongodb.js'
 import errorMiddleware from './middlewares/error.middleware.js';
 import cookieParser from 'cookie-parser';
 
+/*Needed middleware */
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
@@ -16,12 +17,12 @@ app.use('/api/v1/users',userRouter);
 app.use('/api/v1/subscriptions',subscriptionRouter);
 app.use(errorMiddleware);
 
-app.get('/',(req,res) => {
-    res.send("(i) - Welcome!");
-});
-
+/* we start up our api */
 app.listen(PORT,async () => {
+    /* Log that informs that it's all good man */
     console.log(`(i) - API is running on http://localhost:${PORT}`);
+
+    /*Here we connect to our MongoDB database */
     await connectToDB();
 });
 
