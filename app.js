@@ -7,6 +7,7 @@ import connectToDB from './database/mongodb.js'
 import errorMiddleware from './middlewares/error.middleware.js';
 import cookieParser from 'cookie-parser';
 import ajMiddleware from './middlewares/arcjet.middleware.js';
+import workflowRouter from './routes/workflow.routes.js';
 
 /*Needed middleware */
 const app = express();
@@ -17,6 +18,7 @@ app.use(ajMiddleware);
 app.use('/api/v1/auth',authRouter);
 app.use('/api/v1/users',userRouter);
 app.use('/api/v1/subscriptions',subscriptionRouter);
+app.use('/api/v1/workflows',workflowRouter);
 app.use(errorMiddleware);
 
 /* we start up our api */
