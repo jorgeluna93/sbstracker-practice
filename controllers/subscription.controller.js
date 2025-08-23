@@ -131,7 +131,7 @@ export const updateSubscription = async (req,res,next) => {
 
         //Send the OK Result!
         res.status(201).json({
-            sucess:true,
+            success:true,
             message: 'Subscription updated succesfully !',
             data:{subscription:updatedSubscription}
         });
@@ -144,4 +144,36 @@ export const updateSubscription = async (req,res,next) => {
         next(error);
     }
 
+};
+
+export const cancelSubscription = async (req,res,next)=>{
+    try {
+        const subscription = await Subscription.findById(req.params.id);
+        
+        //Validate that subscription exist
+        if(!subscription){
+            const error = new Error("Subscription doesn't exist!");
+            error.statusCode = 404;
+            throw error;
+        }
+
+        //Validate if the user is authorized to do that change;
+        if(req.user.id != subscription.user){
+            const error = new Error("UNAUTHORIZED!");
+            error.statusCode = 401;
+            throw error;
+        }
+
+        //Commit the change
+        const cancelledSubscription = await Subscription.findByIdAndUpdate(subscription._id,{status:"cancelled"},{new:true});
+
+        res.status(200).json({
+            success:true,
+            data:cancelledSubscription
+        });
+
+
+    } catch (error) {
+        next(error);
+    }
 };
