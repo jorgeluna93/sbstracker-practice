@@ -96,3 +96,52 @@ export const getSubscriptionsDetails = async (req,res,next) => {
         next(error);
     }
 };
+
+export const updateSubscription = async (req,res,next) => {
+    //Session
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        //Get SubscriptionId from the /:id path
+        const subscriptionId = await Subscription.findById(req.params.id);
+
+        //If that subscription doesnt exist, exit
+        if(!subscriptionId){
+            const error = new Error("SUBSCRIPTION NOT FOUND!");
+            error.statusCode = 404;
+            throw error;
+        }
+        console.log(req.user.id);
+        console.log("lol " + subscriptionId.user);
+        //Verify that the user is authorize to modify that subscription
+        if(subscriptionId.user != req.user.id){
+            const error = new Error("UNAUTHORIZED!");
+            error.statusCode = 401;
+            throw error;
+        }
+
+        //
+        const updatedSubscription = await Subscription.findByIdAndUpdate(req.params.id,{... req.body},{new:true});
+        //
+
+        //If everything is in order, we commit the transaction (create user), then we close the session
+        await session.commitTransaction();
+        session.endSession();
+
+        //Send the OK Result!
+        res.status(201).json({
+            sucess:true,
+            message: 'Subscription updated succesfully !',
+            data:{subscription:updatedSubscription}
+        });
+
+    }
+    catch(error){
+        //Abort transaction if something goes wrong
+        await session.abortTransaction();
+        session.endSession();
+        next(error);
+    }
+
+};

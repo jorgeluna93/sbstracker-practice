@@ -1,4 +1,6 @@
 import User from '../models/user.model.js';
+import mongoose from "mongoose";
+import bcrypt from 'bcryptjs';
 
 //Get all the users
 export const getUsers = async (req,res,next)=>{
@@ -43,4 +45,70 @@ export const getUser = async (req,res,next)=>{
         next(error);
     }
 
+};
+
+export const updateUser = async (req,res,next) =>{
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        //First we need to see if the user in fact, exists
+        const user = await User.findById(req.params.id);
+
+        if(!user){
+            const error = new Error("User not found!");
+            error.statusCode = 404;
+            throw error;
+        }
+        
+        //We need to determine if that user is updating his own profile
+        if(user._id != req.user.id){
+            const error = new Error("UNAUTHORIZED!");
+            error.statusCode = 401;
+            throw error
+        }
+
+        //Determine the kind of modification we are doing:
+        let update;
+
+        if(req.body.type === "password"){
+            const oldPassword = req.body.oldPassword;
+
+            //Compare password to see if it's correct
+            const isValidPassword = await bcrypt.compare(oldPassword,user.password);
+            
+            //If password is bad, return a 401 Not Authorized
+            if(!isValidPassword){
+                const error = new Error("The entered password is not valid!");
+                error.statusCode = 401;
+                throw error;
+            }
+
+            //Hash password and pass it
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(req.body.password,salt);
+            update = {password:hashedPassword};
+            
+        }else{
+            //pass the data
+            update = {...req.body.data};
+        }
+
+        const updateUser = await User.findByIdAndUpdate(req.params.id,update,{new:true});
+
+        await session.commitTransaction();
+        session.endSession();
+
+        //Send the OK Result!
+        res.status(200).json({
+            sucess:true,
+            message: 'User updated succesfully !',
+            data:updateUser
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        next(error);
+    }
 };
